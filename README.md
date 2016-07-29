@@ -7,3 +7,8 @@ Important features:
 * Creating and querying objects
 * User authentication
 * Retrieving data persistent to the user (Working)
+
+
+###Video Walkthrough
+![](./ChatClientWithParse.gif)
+
