@@ -10,8 +10,9 @@ import UIKit
 import Parse
 
 class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
+    
     var objs : [PFObject]?
+    var username : String = ""
     
     @IBOutlet weak var textField: UITextField!
     
@@ -20,12 +21,15 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        textField.autocorrectionType = UITextAutocorrectionType.No
+        
+        print("username : \(username)")
+        
         self.tableView.delegate = self
         self.tableView.dataSource = self
         
+        NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: #selector(ChatViewController.onTimer), userInfo: nil, repeats: true)
         
-        NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: "onTimer", userInfo: nil, repeats: true)
-
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -42,7 +46,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         print("onTimer")
         
         let query = PFQuery(className:"Message_iOSFeb2016")
-        query.whereKey("username", matchesRegex: "xyzxy") // set the username here. coming from mayb segue
+        query.whereKey("username", matchesRegex: self.username) // set the username here. coming from mayb segue
         query.findObjectsInBackgroundWithBlock {
             (objects: [PFObject]?, error: NSError?) -> Void in
             
@@ -54,7 +58,7 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     self.objs = objects
                     for object in objects {
                         if let message = object["text"] {
-                        print(message)
+                            print(message)
                         }
                     }
                 }
@@ -66,21 +70,21 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         self.tableView.reloadData()
     }
-
+    
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("MessageCell", forIndexPath: indexPath) as! MessageCell
         
         
         if self.objs![indexPath.row]["text"] != nil
         {
-        cell.messageLabel.text = self.objs![indexPath.row]["text"] as! String
+            cell.messageLabel.text = self.objs![indexPath.row]["text"] as? String
         }else{
             cell.messageLabel.text = ""
         }
         
         return cell
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -88,38 +92,28 @@ class ChatViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     
     @IBAction func composeButtonTapped(sender: AnyObject) {
-       
-         var message = PFObject(className:"Message_iOSFeb2016")
+        
+        let message = PFObject(className:"Message_iOSFeb2016")
         message["text"] = textField.text
-        message["username"] = "xyzxy"
+        message["username"] = self.username
         
         // set message by username coming from segue.
         
-         message.saveInBackgroundWithBlock {
-         (success: Bool, error: NSError?) -> Void in
-         if (success) {
-            print("inserted")
-         } else {
-            print("error!")
-         }
-         }
-
-
+        message.saveInBackgroundWithBlock {
+            (success: Bool, error: NSError?) -> Void in
+            if (success) {
+                print("inserted")
+            } else {
+                print("error!")
+            }
+        }
         
+        textField.text = ""
     }
     
     @IBAction func cancelButtonTapped(sender: AnyObject) {
         dismissViewControllerAnimated(true, completion: nil)
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+    
+    
 }
